@@ -1,6 +1,11 @@
 import numpy as np
 
-from .threshold_cascade import run_cascade
+try:
+    # Package-style import (tests, app)
+    from src.threshold_cascade import run_cascade
+except Exception:
+    # Script-style import (when running from src/)
+    from threshold_cascade import run_cascade
 
 
 def figure2_equilibrium_vs_sigma(

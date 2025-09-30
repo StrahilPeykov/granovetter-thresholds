@@ -21,8 +21,8 @@ def run_cascade(thresholds, s0, t_max=200, conv_eps=1e-6):
     converged = False
 
     for _ in range(t_max):
-        # Empirical CDF using sorted thresholds
-        k = int(np.searchsorted(th, r, side="right"))
+        # Empirical CDF using direct count (robust to float boundary issues)
+        k = int(np.count_nonzero(th <= r))
         r_next = k / float(len(th))
         traj.append(r_next)
         if abs(r_next - r) < conv_eps:
