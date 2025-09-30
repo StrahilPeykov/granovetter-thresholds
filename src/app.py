@@ -130,6 +130,7 @@ with tab2:
         sigma_min = st.number_input("Min σ", 0.01, 0.20, 0.01, 0.01)
         sigma_max = st.number_input("Max σ", 0.10, 0.50, 0.30, 0.01)
         n_points = st.slider("# points to test", 20, 200, 100, 10)
+        n_trials = st.number_input("Trials per σ (averaging)", 1, 100, 15, 1, key="fig2_trials")
 
         run_fig2 = st.button("Run Figure 2 Experiment", type="primary")
 
@@ -143,6 +144,7 @@ with tab2:
                     n_points=int(n_points),
                     N=int(fig2_N),
                     seed=int(seed),
+                    n_trials=int(n_trials),
                 )
 
             # Find critical point

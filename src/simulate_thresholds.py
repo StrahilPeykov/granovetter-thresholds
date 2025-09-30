@@ -25,7 +25,7 @@ from distributions import thresholds_beta, thresholds_clipped_normal
 
 def parse_args(argv=None):
     p = argparse.ArgumentParser(
-        description="Simulate threshold cascades (placeholder: writes deterministic scaffold outputs)."
+        description="Simulate threshold cascades and replicate key results from Granovetter (1978)."
     )
     p.add_argument("--dist", choices=["beta", "uniform", "normal_clipped"], default=cfg.DEFAULT_DISTRIBUTION)
     p.add_argument("--alpha", type=float, default=cfg.BETA_ALPHA, help="Beta alpha")
@@ -36,6 +36,7 @@ def parse_args(argv=None):
     p.add_argument("--t-max", type=int, default=cfg.T_MAX, dest="t_max", help="Max time steps")
     p.add_argument("--conv-eps", type=float, default=cfg.CONV_EPS, dest="conv_eps", help="Convergence epsilon")
     p.add_argument("--seed", type=int, default=cfg.SEED, help="Random seed")
+    p.add_argument("--fig2-trials", type=int, default=10, help="Number of trials per sigma in Figure 2 (reduces noise)")
     return p.parse_args(argv)
 
 
@@ -54,6 +55,12 @@ def main(argv=None) -> int:
     uniform_cmp = os.path.join("results", "uniform_comparison.csv")
     run_meta_path = os.path.join("results", "run_meta.json")
 
+    print(f"Running threshold cascade simulations...")
+    print(f"  Distribution: {args.dist}")
+    print(f"  Population: N={args.N}")
+    print(f"  Seed: {args.seed}")
+    print()
+
     # Generate base thresholds according to requested distribution
     if args.dist == "beta":
         thresholds = thresholds_beta(args.N, args.alpha, args.beta, rng)
@@ -64,6 +71,7 @@ def main(argv=None) -> int:
         thresholds = np.linspace(0.0, 1.0, args.N)
 
     # Experiment 1: Seed sensitivity curve s0 -> equilibrium
+    print("Experiment 1: Seed sensitivity (s₀ → equilibrium)...")
     s0_vals, eq_vals = seed_sensitivity(
         thresholds,
         s0_min=float(cfg.S0_GRID_START),
@@ -77,6 +85,7 @@ def main(argv=None) -> int:
         header="s0,equilibrium",
         comments="",
     )
+    print(f"  → Wrote {seed_vs_final}")
 
     # Save thresholds used for Figure 1 graphical method (optional plotting)
     np.savetxt(
@@ -88,7 +97,12 @@ def main(argv=None) -> int:
     )
 
     # Experiment 2: Figure 2 replication — equilibrium vs sigma (normal, clipped)
-    sigmas, eqs = figure2_equilibrium_vs_sigma(N=args.N, seed=args.seed)
+    print(f"Experiment 2: Figure 2 replication (σ sweep, n_trials={args.fig2_trials})...")
+    sigmas, eqs = figure2_equilibrium_vs_sigma(
+        N=args.N, 
+        seed=args.seed,
+        n_trials=args.fig2_trials,
+    )
     np.savetxt(
         eq_vs_sigma,
         np.column_stack([sigmas, eqs]),
@@ -96,8 +110,16 @@ def main(argv=None) -> int:
         header="sigma,equilibrium",
         comments="",
     )
+    
+    # Report critical point
+    diffs = np.diff(eqs)
+    jump_idx = int(np.argmax(np.abs(diffs))) if len(diffs) > 0 else 0
+    sigma_c = sigmas[jump_idx]
+    print(f"  → Critical σ_c ≈ {sigma_c:.4f} (paper: σ_c ≈ 0.122)")
+    print(f"  → Wrote {eq_vs_sigma}")
 
     # Experiment 3: Uniform vs perturbed comparison (pedagogical example)
+    print("Experiment 3: Uniform vs perturbed distribution...")
     uniform_results = uniform_comparison(N=100, seed=args.seed)
     np.savetxt(
         uniform_cmp,
@@ -109,6 +131,10 @@ def main(argv=None) -> int:
         header="true_eq,perturbed_eq",
         comments="",
     )
+    print(f"  → True uniform: equilibrium = {uniform_results['true']['equilibrium']:.3f}")
+    print(f"  → Perturbed:    equilibrium = {uniform_results['perturbed']['equilibrium']:.3f}")
+    print(f"  → Wrote {uniform_cmp}")
+    print()
 
     # Write run metadata
     params = {
@@ -121,6 +147,7 @@ def main(argv=None) -> int:
         "t_max": args.t_max,
         "conv_eps": args.conv_eps,
         "seed": args.seed,
+        "fig2_trials": args.fig2_trials,
         "s0_grid": [float(cfg.S0_GRID_START), float(cfg.S0_GRID_END)],
         "s0_steps": int(cfg.S0_STEPS),
     }
@@ -134,13 +161,20 @@ def main(argv=None) -> int:
 
     write_json(run_meta_path, meta)
 
-    # Echo parsed params for visibility
+    # Echo summary
+    print("=" * 60)
+    print("SIMULATION COMPLETE")
+    print("=" * 60)
     print(json.dumps(meta, indent=2))
-    print(f"Wrote: {run_meta_path}")
-    print("Wrote results:")
+    print()
+    print("Results written to:")
+    print(" -", run_meta_path)
     print(" -", seed_vs_final)
     print(" -", eq_vs_sigma)
     print(" -", uniform_cmp)
+    print()
+    print("Next step: Generate figures with:")
+    print("  python src/plots.py")
 
     return 0
 

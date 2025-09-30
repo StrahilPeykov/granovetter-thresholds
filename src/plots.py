@@ -38,11 +38,11 @@ def _fig_seed_vs_final(input_dir: str, output_dir: str):
     plt.figure(figsize=(7, 5))
     plt.plot(s0, s_final, "o-", color="#2E86AB", lw=2, markersize=3)
     plt.title("Final participation vs initial seed", fontsize=14, fontweight="bold")
-    plt.xlabel("Initial seed s0", fontsize=12)
-    plt.ylabel("Final participation", fontsize=12)
+    plt.xlabel("Initial seed s₀ (proportion)", fontsize=12)
+    plt.ylabel("Final participation (proportion)", fontsize=12)
     plt.grid(True, alpha=0.3)
-    out = os.path.join(output_dir, "fig_seed_vs_final.png")
     plt.tight_layout()
+    out = os.path.join(output_dir, "fig_seed_vs_final.png")
     plt.savefig(out, dpi=150)
     plt.close()
     return out
@@ -67,23 +67,93 @@ def _fig_uniform_comparison(input_dir: str, output_dir: str):
     for bar, val in zip(bars, values):
         plt.text(bar.get_x() + bar.get_width() / 2, val + 0.02, f"{val:.2f}", ha="center", fontsize=12)
     plt.ylim(0, 1.05)
-    plt.title("Uniform vs perturbed: equilibrium outcomes", fontsize=14, fontweight="bold")
-    plt.ylabel("Final participation", fontsize=12)
+    plt.title("Uniform vs perturbed: equilibrium outcomes (pages 1424–1425)", fontsize=14, fontweight="bold")
+    plt.ylabel("Final participation (proportion)", fontsize=12)
     plt.grid(True, axis="y", alpha=0.3)
-    out = os.path.join(output_dir, "fig_uniform_comparison.png")
+    
+    # Add annotation explaining the dramatic difference
+    if abs(true_eq - pert_eq) > 0.5:
+        plt.text(0.5, 0.5, "Tiny change in distribution\n→ Huge change in outcome", 
+                ha='center', fontsize=10, style='italic',
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
+    
     plt.tight_layout()
+    out = os.path.join(output_dir, "fig_uniform_comparison.png")
     plt.savefig(out, dpi=150)
     plt.close()
     return out
 
 
-"""
-Optional pedagogical visual: cobweb diagram for the graphical method (Figure 1).
-Not yet wired to CLI; can be used interactively or in notebooks.
-"""
-def _fig1_graphical_method(thresholds: np.ndarray, s0: float = 0.01):
-    """Show the cobweb diagram: r(t) → F[r(t)] → r(t+1) using 45° line.
+def _fig_equilibrium_vs_sigma(input_dir: str, output_dir: str):
+    """
+    Plot Figure 2: the critical result from page 1428
+    
+    Key features to highlight:
+    - Critical σ_c ≈ 0.122 where discontinuous jump occurs
+    - Near-zero equilibrium for σ < σ_c
+    - Near-unity equilibrium just after σ_c
+    - Gradual decline for σ > σ_c
+    """
+    path = os.path.join(input_dir, "equilibrium_vs_sigma.csv")
+    if not _file_nonempty(path):
+        return None
+    try:
+        data = np.loadtxt(path, delimiter=",", skiprows=1)
+        sigmas = data[:, 0]
+        equilibria = data[:, 1]
+    except Exception:
+        return None
 
+    # Find the critical point (largest jump)
+    diffs = np.diff(equilibria)
+    jump_idx = int(np.argmax(np.abs(diffs))) if len(diffs) > 0 else 0
+    sigma_c = sigmas[jump_idx]
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    
+    # Main curve
+    ax.plot(sigmas, equilibria, 'o-', color='#2E86AB', lw=2.5, markersize=4, 
+            label='Equilibrium participation')
+    
+    # Highlight the critical point
+    ax.axvline(sigma_c, color='red', ls='--', lw=2, alpha=0.7, 
+               label=f'Critical σ_c ≈ {sigma_c:.3f}')
+    
+    # Add reference line for paper's theoretical value
+    ax.axvline(0.122, color='gray', ls=':', lw=1.5, alpha=0.5,
+               label='Paper value: σ_c = 0.122')
+    
+    # Annotate the jump region
+    if jump_idx < len(equilibria) - 1:
+        eq_before = equilibria[jump_idx]
+        eq_after = equilibria[jump_idx + 1]
+        ax.annotate('Discontinuous\ntransition', 
+                   xy=(sigma_c, (eq_before + eq_after) / 2),
+                   xytext=(sigma_c + 0.05, 0.5),
+                   fontsize=10,
+                   bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5),
+                   arrowprops=dict(arrowstyle='->', color='red', lw=1.5))
+    
+    ax.set_xlabel('Standard deviation σ', fontsize=13)
+    ax.set_ylabel('Equilibrium participation (proportion)', fontsize=13)
+    ax.set_title('Figure 2: Critical transition in threshold model\n(Normal distribution, mean=0.25, N=100)', 
+                 fontsize=14, fontweight='bold')
+    ax.legend(fontsize=10, loc='upper right')
+    ax.grid(True, alpha=0.3)
+    ax.set_ylim(-0.05, 1.05)
+    
+    plt.tight_layout()
+    out = os.path.join(output_dir, "fig_equilibrium_vs_sigma.png")
+    plt.savefig(out, dpi=150)
+    plt.close()
+    return out
+
+
+def _fig1_graphical_method(thresholds: np.ndarray, s0: float = 0.01):
+    """
+    Figure 1 (page 1426): Cobweb diagram showing the graphical method
+    
+    Shows r(t) → F[r(t)] → r(t+1) using 45° line intersection.
     - Plots the empirical CDF F(r)
     - Plots the 45° line r
     - Draws cobweb steps starting from s0
@@ -93,31 +163,42 @@ def _fig1_graphical_method(thresholds: np.ndarray, s0: float = 0.01):
     x = np.linspace(0, 1, 1001)
     F = np.searchsorted(th, x, side='right') / float(N)
 
-    plt.figure(figsize=(6, 6))
-    plt.plot(x, F, label='Empirical CDF F(r)', color='#2E86AB', lw=2)
-    plt.plot([0, 1], [0, 1], color='gray', ls='--', label='45° line r')
+    fig, ax = plt.subplots(figsize=(7, 7))
+    ax.plot(x, F, label='CDF F(x)', color='#2E86AB', lw=2.5)
+    ax.plot([0, 1], [0, 1], color='gray', ls='--', lw=1.5, label='45° line: F(x)=x')
 
     # Cobweb iterations
     r = float(s0)
-    for _ in range(25):
+    max_iters = 25
+    for i in range(max_iters):
         # vertical: (r, r) -> (r, F(r))
         Fr = np.searchsorted(th, r, side='right') / float(N)
-        plt.plot([r, r], [r, Fr], color='#27AE60', lw=1.5)
+        ax.plot([r, r], [r, Fr], color='#27AE60', lw=1.5, alpha=0.7)
         # horizontal: (r, F(r)) -> (F(r), F(r))
-        plt.plot([r, Fr], [Fr, Fr], color='#27AE60', lw=1.5)
+        ax.plot([r, Fr], [Fr, Fr], color='#27AE60', lw=1.5, alpha=0.7)
+        
+        if i == 0:
+            ax.plot([], [], color='#27AE60', lw=1.5, label='Iteration steps')
+        
         if abs(Fr - r) < 1e-6:
+            # Mark equilibrium point
+            ax.plot(Fr, Fr, 'ro', markersize=10, 
+                   label=f'Equilibrium r_e = {Fr:.3f}', zorder=10)
             break
         r = Fr
 
-    plt.xlim(0, 1)
-    plt.ylim(0, 1)
-    plt.xlabel('r')
-    plt.ylabel('F(r)')
-    plt.title('Figure 1: Graphical equilibrium (cobweb)')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
+    ax.set_xlim(-0.02, 1.02)
+    ax.set_ylim(-0.02, 1.02)
+    ax.set_xlabel('r (proportion participating)', fontsize=12)
+    ax.set_ylabel('F(r) (cumulative distribution)', fontsize=12)
+    ax.set_title('Figure 1: Graphical method for finding equilibrium\n' + 
+                'r(t) = proportion having participated by time t',
+                fontsize=13, fontweight='bold')
+    ax.legend(fontsize=10)
+    ax.grid(True, alpha=0.3)
+    ax.set_aspect('equal')
     plt.tight_layout()
-    return plt.gcf()
+    return fig
 
 
 def _fig_graphical_method_from_file(input_dir: str, output_dir: str):
@@ -135,37 +216,6 @@ def _fig_graphical_method_from_file(input_dir: str, output_dir: str):
     out = os.path.join(output_dir, "fig_graphical_method.png")
     fig.savefig(out, dpi=150)
     plt.close(fig)
-    return out
-
-
-def _fig_equilibrium_vs_sigma(input_dir: str, output_dir: str):
-    """Plot Figure 2: the critical result"""
-    path = os.path.join(input_dir, "equilibrium_vs_sigma.csv")
-    if not _file_nonempty(path):
-        return None
-    try:
-        data = np.loadtxt(path, delimiter=",", skiprows=1)
-        sigmas = data[:, 0]
-        equilibria = data[:, 1]
-    except Exception:
-        return None
-
-    diffs = np.diff(equilibria)
-    jump_idx = int(np.argmax(np.abs(diffs))) if len(diffs) > 0 else 0
-    sigma_c = sigmas[jump_idx]
-
-    plt.figure(figsize=(7, 5))
-    plt.plot(sigmas, equilibria, 'o-', color='#2E86AB', lw=2, markersize=3)
-    plt.axvline(sigma_c, color='red', ls='--', alpha=0.7, label=f'Critical σ_c ≈ {sigma_c:.3f}')
-    plt.title('Equilibrium vs Standard Deviation (Normal Distribution)', fontsize=14, fontweight='bold')
-    plt.xlabel('Standard deviation σ', fontsize=12)
-    plt.ylabel('Final participation', fontsize=12)
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    out = os.path.join(output_dir, "fig_equilibrium_vs_sigma.png")
-    plt.savefig(out, dpi=150)
-    plt.close()
     return out
 
 

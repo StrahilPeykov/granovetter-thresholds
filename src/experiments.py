@@ -11,10 +11,11 @@ except Exception:
 def figure2_equilibrium_vs_sigma(
     mean: float = 0.25,
     sigma_min: float = 0.01,
-    sigma_max: float = 0.30,
+    sigma_max: float = 0.50,
     n_points: int = 100,
     N: int = 100,
     seed: int = 42,
+    n_trials: int = 15,
 ):
     """
     Replicate Figure 2 (page 1428): equilibrium vs sigma for normal distribution.
@@ -25,6 +26,9 @@ def figure2_equilibrium_vs_sigma(
       1. Sample N thresholds from clipped normal(mean, sigma)
       2. Run cascade starting from s0 = 1/N (one instigator)
       3. Record (sigma, final_equilibrium)
+      
+    To reduce sampling noise, we average over n_trials independent samples
+    for each sigma value.
 
     Returns: (sigma_array, equilibrium_array)
     """
@@ -35,11 +39,20 @@ def figure2_equilibrium_vs_sigma(
     s0 = 1.0 / float(N)
 
     for i, sigma in enumerate(sigmas):
-        th = rng.normal(loc=mean, scale=float(sigma), size=N)
-        th = np.clip(th, 0.0, 1.0)
-        th.sort()
-        final_r, traj, _ = run_cascade(th, s0=s0)
-        equilibria[i] = final_r
+        trial_results = []
+        for trial in range(n_trials):
+            # Use different seed for each trial but deterministically derived
+            trial_seed = seed + i * n_trials + trial
+            trial_rng = np.random.default_rng(trial_seed)
+            
+            th = trial_rng.normal(loc=mean, scale=float(sigma), size=N)
+            th = np.clip(th, 0.0, 1.0)
+            th.sort()
+            final_r, traj, _ = run_cascade(th, s0=s0)
+            trial_results.append(final_r)
+        
+        # Average over trials to reduce noise
+        equilibria[i] = np.mean(trial_results)
 
     return sigmas, equilibria
 
@@ -54,6 +67,10 @@ def uniform_comparison(N: int = 100, seed: int = 42):
 
     True: [0/N, 1/N, 2/N, ..., (N-1)/N]
     Perturbed: [0/N, 2/N, 2/N, 3/N, ..., (N-1)/N]
+    
+    Note: Thresholds are PROPORTIONS (0-1), not absolute counts.
+    This matches the paper's mathematical formulation while being
+    more numerically stable.
     """
     # Deterministic constructions; 'seed' kept for API symmetry but unused here.
     s0 = 1.0 / float(N)
@@ -121,3 +138,32 @@ def sampling_variability(population_thresholds: np.ndarray, crowd_size: int = 10
         r_final, _, _ = run_cascade(crowd, s0=1.0 / float(crowd_size))
         equilibria.append(r_final)
     return np.asarray(equilibria, dtype=float)
+
+
+def validate_figure2_asymptotic_behavior(
+    mean: float = 0.25,
+    N: int = 100,
+    seed: int = 42,
+):
+    """
+    Validation: As σ → ∞, the equilibrium should approach 0.5
+    
+    Mathematical reasoning: For very large σ, the clipped normal 
+    distribution approaches uniform on [0,1], which has CDF F(x) = x.
+    The fixed point is where F(r) = r, which gives r = 0.5 for the
+    symmetric case.
+    
+    Returns: (large_sigma_equilibrium, expected=0.5)
+    """
+    # Test with very large sigma
+    large_sigma = 10.0  # Much larger than the support [0,1]
+    
+    rng = np.random.default_rng(seed)
+    th = rng.normal(loc=mean, scale=large_sigma, size=N)
+    th = np.clip(th, 0.0, 1.0)
+    th.sort()
+    
+    s0 = 1.0 / float(N)
+    final_r, _, _ = run_cascade(th, s0=s0)
+    
+    return final_r, 0.5
