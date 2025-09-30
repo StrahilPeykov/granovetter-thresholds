@@ -15,13 +15,15 @@ def run_cascade(thresholds, s0, t_max=200, conv_eps=1e-6):
     Returns:
         (final_r, trajectory_array, converged_bool)
     """
-    th = np.asarray(thresholds, dtype=float)
+    th = np.sort(np.asarray(thresholds, dtype=float))
     r = float(s0)
     traj = [r]
     converged = False
 
     for _ in range(t_max):
-        r_next = float(np.mean(th <= r))
+        # Empirical CDF using sorted thresholds
+        k = int(np.searchsorted(th, r, side="right"))
+        r_next = k / float(len(th))
         traj.append(r_next)
         if abs(r_next - r) < conv_eps:
             converged = True
@@ -29,4 +31,3 @@ def run_cascade(thresholds, s0, t_max=200, conv_eps=1e-6):
         r = r_next
 
     return traj[-1], np.asarray(traj, dtype=float), converged
-

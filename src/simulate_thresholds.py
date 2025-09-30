@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
-import argparse
-import json
 import os
 import sys
+
+# Ensure repo root on path when run as a script
+_FILE_DIR = os.path.dirname(__file__)
+_REPO_ROOT = os.path.abspath(os.path.join(_FILE_DIR, ".."))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
+import argparse
+import json
 import numpy as np
 
 from util_logging import ensure_dir, write_json, get_git_commit_short, utc_timestamp_iso
