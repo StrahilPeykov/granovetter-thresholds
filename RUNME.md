@@ -1,10 +1,10 @@
-# Env
-mamba env create -f environment.yml || conda env create -f environment.yml
+# create env
+conda env create -f environment.yml
 conda activate granovetter
 
-# Reproduce figures
+# reproduce figures
 python src/simulate_thresholds.py
 python src/plots.py
 
-# Optional demo
-# streamlit run src/app_streamlit.py
+# (optional) run the demo app
+streamlit run src/app_streamlit.py
