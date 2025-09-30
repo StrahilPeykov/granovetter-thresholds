@@ -7,6 +7,13 @@ import numpy as np
 
 from util_logging import ensure_dir, write_json, get_git_commit_short, utc_timestamp_iso
 import config as cfg
+from threshold_cascade import run_cascade
+from experiments import (
+    figure2_equilibrium_vs_sigma,
+    uniform_comparison,
+    seed_sensitivity,
+)
+from distributions import thresholds_beta, thresholds_clipped_normal
 
 
 def parse_args(argv=None):
@@ -30,21 +37,55 @@ def parse_args(argv=None):
 def main(argv=None) -> int:
     args = parse_args(argv)
 
-    # Seed RNG for deterministic placeholder behavior
+    # Seed RNG
     rng = np.random.default_rng(args.seed)
-    _ = rng.integers(0, 10)  # touch RNG intentionally
 
     # Ensure output dirs
     ensure_dir("results")
 
-    # Paths for placeholder outputs
+    # Paths for outputs
     seed_vs_final = os.path.join("results", "seed_vs_final.csv")
-    timeseries_tip = os.path.join("results", "timeseries_tip.csv")
-    bridge_experiment = os.path.join("results", "bridge_experiment.csv")
+    eq_vs_sigma = os.path.join("results", "equilibrium_vs_sigma.csv")
+    timeseries_tip = os.path.join("results", "timeseries_tip.csv")  # placeholder for now
+    bridge_experiment = os.path.join("results", "bridge_experiment.csv")  # placeholder for now
     run_meta_path = os.path.join("results", "run_meta.json")
 
-    # Create empty placeholder CSVs (0-byte files if not existing)
-    for path in (seed_vs_final, timeseries_tip, bridge_experiment):
+    # Generate base thresholds according to requested distribution
+    if args.dist == "beta":
+        thresholds = thresholds_beta(args.N, args.alpha, args.beta, rng)
+    elif args.dist == "normal_clipped":
+        thresholds = thresholds_clipped_normal(args.N, mu=0.3, sigma=0.15, rng=rng)
+    else:
+        # Deterministic uniform grid as a baseline
+        thresholds = np.linspace(0.0, 1.0, args.N)
+
+    # Experiment 1: Seed sensitivity curve s0 -> equilibrium
+    s0_vals, eq_vals = seed_sensitivity(
+        thresholds,
+        s0_min=float(args.s0_grid[0]),
+        s0_max=float(args.s0_grid[1]),
+        n_points=int(args.s0_steps),
+    )
+    np.savetxt(
+        seed_vs_final,
+        np.column_stack([s0_vals, eq_vals]),
+        delimiter=",",
+        header="s0,equilibrium",
+        comments="",
+    )
+
+    # Experiment 2: Figure 2 replication — equilibrium vs sigma (normal, clipped)
+    sigmas, eqs = figure2_equilibrium_vs_sigma(N=args.N, seed=args.seed)
+    np.savetxt(
+        eq_vs_sigma,
+        np.column_stack([sigmas, eqs]),
+        delimiter=",",
+        header="sigma,equilibrium",
+        comments="",
+    )
+
+    # Ensure compatibility placeholders exist for plotting script
+    for path in (timeseries_tip, bridge_experiment):
         if not os.path.exists(path):
             open(path, "w").close()
 
@@ -75,8 +116,10 @@ def main(argv=None) -> int:
     # Echo parsed params for visibility
     print(json.dumps(meta, indent=2))
     print(f"Wrote: {run_meta_path}")
-    print("Created placeholders:")
+    print("Wrote results:")
     print(" -", seed_vs_final)
+    print(" -", eq_vs_sigma)
+    print("Placeholders kept for compatibility:")
     print(" -", timeseries_tip)
     print(" -", bridge_experiment)
 
@@ -85,4 +128,3 @@ def main(argv=None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
