@@ -23,14 +23,12 @@ def parse_args(argv=None):
     p.add_argument("--dist", choices=["beta", "uniform", "normal_clipped"], default=cfg.DEFAULT_DISTRIBUTION)
     p.add_argument("--alpha", type=float, default=cfg.BETA_ALPHA, help="Beta alpha")
     p.add_argument("--beta", type=float, default=cfg.BETA_BETA, help="Beta beta")
+    p.add_argument("--mu", type=float, default=cfg.NORMAL_CLIPPED_MU, help="Normal mean (for normal_clipped)")
+    p.add_argument("--sigma", type=float, default=cfg.NORMAL_CLIPPED_SIGMA, help="Normal std (for normal_clipped)")
     p.add_argument("--N", type=int, default=cfg.N, dest="N", help="Population size")
     p.add_argument("--t-max", type=int, default=cfg.T_MAX, dest="t_max", help="Max time steps")
     p.add_argument("--conv-eps", type=float, default=cfg.CONV_EPS, dest="conv_eps", help="Convergence epsilon")
     p.add_argument("--seed", type=int, default=cfg.SEED, help="Random seed")
-    p.add_argument("--s0-grid", nargs=2, type=float, default=[cfg.S0_GRID_START, cfg.S0_GRID_END], metavar=("START", "END"))
-    p.add_argument("--s0-steps", type=int, default=cfg.S0_STEPS)
-    p.add_argument("--bridge-theta", type=float, default=cfg.BRIDGE_THETA)
-    p.add_argument("--no-network", action="store_true", help="Disable networked variant; use well-mixed placeholder")
     return p.parse_args(argv)
 
 
@@ -46,15 +44,14 @@ def main(argv=None) -> int:
     # Paths for outputs
     seed_vs_final = os.path.join("results", "seed_vs_final.csv")
     eq_vs_sigma = os.path.join("results", "equilibrium_vs_sigma.csv")
-    timeseries_tip = os.path.join("results", "timeseries_tip.csv")  # placeholder for now
-    bridge_experiment = os.path.join("results", "bridge_experiment.csv")  # placeholder for now
+    uniform_cmp = os.path.join("results", "uniform_comparison.csv")
     run_meta_path = os.path.join("results", "run_meta.json")
 
     # Generate base thresholds according to requested distribution
     if args.dist == "beta":
         thresholds = thresholds_beta(args.N, args.alpha, args.beta, rng)
     elif args.dist == "normal_clipped":
-        thresholds = thresholds_clipped_normal(args.N, mu=0.3, sigma=0.15, rng=rng)
+        thresholds = thresholds_clipped_normal(args.N, mu=args.mu, sigma=args.sigma, rng=rng)
     else:
         # Deterministic uniform grid as a baseline
         thresholds = np.linspace(0.0, 1.0, args.N)
@@ -62,9 +59,9 @@ def main(argv=None) -> int:
     # Experiment 1: Seed sensitivity curve s0 -> equilibrium
     s0_vals, eq_vals = seed_sensitivity(
         thresholds,
-        s0_min=float(args.s0_grid[0]),
-        s0_max=float(args.s0_grid[1]),
-        n_points=int(args.s0_steps),
+        s0_min=float(cfg.S0_GRID_START),
+        s0_max=float(cfg.S0_GRID_END),
+        n_points=int(cfg.S0_STEPS),
     )
     np.savetxt(
         seed_vs_final,
@@ -84,10 +81,18 @@ def main(argv=None) -> int:
         comments="",
     )
 
-    # Ensure compatibility placeholders exist for plotting script
-    for path in (timeseries_tip, bridge_experiment):
-        if not os.path.exists(path):
-            open(path, "w").close()
+    # Experiment 3: Uniform vs perturbed comparison (pedagogical example)
+    uniform_results = uniform_comparison(N=100, seed=args.seed)
+    np.savetxt(
+        uniform_cmp,
+        np.column_stack([
+            [uniform_results["true"]["equilibrium"]],
+            [uniform_results["perturbed"]["equilibrium"]],
+        ]),
+        delimiter=",",
+        header="true_eq,perturbed_eq",
+        comments="",
+    )
 
     # Write run metadata
     params = {
@@ -119,9 +124,7 @@ def main(argv=None) -> int:
     print("Wrote results:")
     print(" -", seed_vs_final)
     print(" -", eq_vs_sigma)
-    print("Placeholders kept for compatibility:")
-    print(" -", timeseries_tip)
-    print(" -", bridge_experiment)
+    print(" -", uniform_cmp)
 
     return 0
 

@@ -22,5 +22,7 @@ NORMAL_CLIPPED_SIGMA = 0.15
 S0_GRID_START = 0.00
 S0_GRID_END = 0.20
 S0_STEPS = 41
-BRIDGE_THETA = 0.05
-
+"""
+Note: The original network/bridge parameters have been removed to keep the
+replication focused on the well-mixed model in the paper.
+"""

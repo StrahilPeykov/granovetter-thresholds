@@ -25,3 +25,21 @@ def test_figure2_jump_and_endpoints():
     # And the jump magnitude should be non-trivial
     assert diffs[jump_idx] > 0.2
 
+
+def test_figure2_critical_sigma_matches_paper():
+    """Paper reports σ_c ≈ 0.122 for mean=0.25, N=100"""
+    sigmas, eq = figure2_equilibrium_vs_sigma(
+        mean=0.25,
+        sigma_min=0.08,
+        sigma_max=0.16,
+        n_points=100,
+        N=100,
+        seed=42,
+    )
+
+    diffs = np.diff(eq)
+    jump_idx = int(np.argmax(diffs))
+    sigma_c = sigmas[jump_idx]
+
+    # Allow 10% tolerance around 0.122
+    assert 0.11 <= sigma_c <= 0.13, f"Expected σ_c ≈ 0.122, got {sigma_c:.3f}"

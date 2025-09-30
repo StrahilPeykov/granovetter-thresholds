@@ -7,9 +7,9 @@ Context: this work is for the course Complex Systems 5404COSY6Y at the Universit
 Brief abstract: actors choose between two alternatives where costs/benefits depend on how many others choose each alternative; each actor has a threshold at which net benefits turn positive. Given a threshold distribution, the model predicts the equilibrium participation and its stability. Small differences in distributions can yield very different outcomes, with applications to riots, diffusion, strikes, voting, and migration.
 
 ## Deliverables (figure files)
-- `figures/fig_seed_vs_final.png`
-- `figures/fig_timeseries_tip.png`
-- `figures/fig_bridge.png`
+- `figures/fig_seed_vs_final.png` — Final participation vs initial seed
+- `figures/fig_equilibrium_vs_sigma.png` — Figure 2: critical transition (σ sweep)
+- `figures/fig_uniform_comparison.png` — Uniform vs perturbed equilibria (pages 1424–1425)
 
 ## Setup
 Use Conda to create the environment:
@@ -19,7 +19,7 @@ conda activate granovetter
 ```
 
 ## Usage
-1) Simulate (placeholder outputs + run metadata):
+1) Simulate (writes CSV results + run metadata):
 ```bash
 python src/simulate_thresholds.py \
   --dist beta --alpha 2 --beta 5 \

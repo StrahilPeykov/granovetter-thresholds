@@ -14,6 +14,8 @@ def figure2_equilibrium_vs_sigma(
     """
     Replicate Figure 2 (page 1428): equilibrium vs sigma for normal distribution.
 
+    KEY RESULT: Critical σ_c ≈ 0.122 (mean=0.25, N=100) where equilibrium jumps.
+
     For each sigma in [sigma_min, sigma_max]:
       1. Sample N thresholds from clipped normal(mean, sigma)
       2. Run cascade starting from s0 = 1/N (one instigator)
@@ -92,3 +94,21 @@ def seed_sensitivity(thresholds: np.ndarray, s0_min: float = 0.0, s0_max: float 
         r, _, _ = run_cascade(thresholds, s0=float(s0))
         eqs[i] = r
     return s0s, eqs
+
+
+def sampling_variability(population_thresholds: np.ndarray, crowd_size: int = 100, n_samples: int = 1000, seed: int = 42):
+    """
+    Pages 1431–1432: Sample crowds from a larger population to show how
+    identical populations can yield different riot outcomes due to sampling.
+
+    Returns: array of equilibrium outcomes from different crowd samples.
+    """
+    rng = np.random.default_rng(seed)
+    population_thresholds = np.asarray(population_thresholds, dtype=float)
+    equilibria = []
+    for _ in range(int(n_samples)):
+        crowd = rng.choice(population_thresholds, size=int(crowd_size), replace=False)
+        crowd.sort()
+        r_final, _, _ = run_cascade(crowd, s0=1.0 / float(crowd_size))
+        equilibria.append(r_final)
+    return np.asarray(equilibria, dtype=float)
