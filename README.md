@@ -1,5 +1,7 @@
 # Threshold Models of Collective Behavior — Granovetter (1978)
 
+Live app: https://granovetter.streamlit.app/
+
 This repository provides a clean, reproducible replication of Mark Granovetter's 1978 paper "Threshold Models of Collective Behavior." 
 
 **Context**: Assignment 2 for Complex Systems 5404COSY6Y at the University of Amsterdam (UvA), taught by Vítor V. Vasconcelos.
@@ -76,6 +78,8 @@ Launch Streamlit app for interactive parameter tuning:
 ```bash
 streamlit run src/app.py
 ```
+
+Or open the hosted app directly: https://granovetter.streamlit.app/
 
 ## Validation
 

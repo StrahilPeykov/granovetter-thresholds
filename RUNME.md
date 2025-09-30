@@ -69,6 +69,9 @@ streamlit run src/app.py
 ```
 
 Opens in browser at `http://localhost:8501` with interactive controls for:
+
+Or open the hosted app: https://granovetter.streamlit.app/
+
 - Threshold distributions (normal, beta, uniform)
 - Population size N
 - Initial seed s₀
