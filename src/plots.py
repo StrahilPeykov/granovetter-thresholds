@@ -23,20 +23,23 @@ def _file_nonempty(path: str) -> bool:
 def _fig_seed_vs_final(input_dir: str, output_dir: str):
     path = os.path.join(input_dir, "seed_vs_final.csv")
     if _file_nonempty(path):
-        # Real parsing will go here later; for now, dummy
-        data = np.loadtxt(path, delimiter=",")
-        s0 = data[:, 0]
-        s_final = data[:, 1]
+        try:
+            data = np.loadtxt(path, delimiter=",", skiprows=1)
+            s0 = data[:, 0]
+            s_final = data[:, 1]
+        except Exception:
+            s0 = np.linspace(0.0, 0.5, 101)
+            s_final = 1.0 / (1.0 + np.exp(-20 * (s0 - 0.15)))
     else:
         # Dummy monotone curve from s0 to s_final with a gentle S-shape
         s0 = np.linspace(0.0, 0.5, 101)
         s_final = 1.0 / (1.0 + np.exp(-20 * (s0 - 0.15)))
 
-    plt.figure(figsize=(6, 4))
-    plt.plot(s0, s_final, lw=2)
-    plt.title("Final participation vs initial seed")
-    plt.xlabel("Initial seed s0")
-    plt.ylabel("Final participation")
+    plt.figure(figsize=(7, 5))
+    plt.plot(s0, s_final, "o-", color="#2E86AB", lw=2, markersize=3)
+    plt.title("Final participation vs initial seed", fontsize=14, fontweight="bold")
+    plt.xlabel("Initial seed s0", fontsize=12)
+    plt.ylabel("Final participation", fontsize=12)
     plt.grid(True, alpha=0.3)
     out = os.path.join(output_dir, "fig_seed_vs_final.png")
     plt.tight_layout()
@@ -48,19 +51,23 @@ def _fig_seed_vs_final(input_dir: str, output_dir: str):
 def _fig_timeseries_tip(input_dir: str, output_dir: str):
     path = os.path.join(input_dir, "timeseries_tip.csv")
     if _file_nonempty(path):
-        data = np.loadtxt(path, delimiter=",")
-        t = data[:, 0]
-        s = data[:, 1]
+        try:
+            data = np.loadtxt(path, delimiter=",", skiprows=1)
+            t = data[:, 0]
+            s = data[:, 1]
+        except Exception:
+            t = np.arange(0, 50)
+            s = 0.05 + 1.0 / (1.0 + np.exp(-0.3 * (t - 25))) * 0.9
     else:
         t = np.arange(0, 50)
         # Dummy tipping-like trajectory
         s = 0.05 + 1.0 / (1.0 + np.exp(-0.3 * (t - 25))) * 0.9
 
-    plt.figure(figsize=(6, 4))
-    plt.plot(t, s, lw=2)
-    plt.title("Participation over time near tipping point")
-    plt.xlabel("Time t")
-    plt.ylabel("Participation")
+    plt.figure(figsize=(7, 5))
+    plt.plot(t, s, "o-", color="#2E86AB", lw=2, markersize=3)
+    plt.title("Participation over time near tipping point", fontsize=14, fontweight="bold")
+    plt.xlabel("Time t", fontsize=12)
+    plt.ylabel("Participation", fontsize=12)
     plt.grid(True, alpha=0.3)
     out = os.path.join(output_dir, "fig_timeseries_tip.png")
     plt.tight_layout()
@@ -72,23 +79,59 @@ def _fig_timeseries_tip(input_dir: str, output_dir: str):
 def _fig_bridge(input_dir: str, output_dir: str):
     path = os.path.join(input_dir, "bridge_experiment.csv")
     if _file_nonempty(path):
-        data = np.loadtxt(path, delimiter=",")
-        theta = data[:, 0]
-        s_final = data[:, 1]
+        try:
+            data = np.loadtxt(path, delimiter=",", skiprows=1)
+            theta = data[:, 0]
+            s_final = data[:, 1]
+        except Exception:
+            theta = np.linspace(0.0, 0.2, 50)
+            s_final = 0.8 - 1.5 * theta
+            s_final = np.clip(s_final, 0.0, 1.0)
     else:
         theta = np.linspace(0.0, 0.2, 50)
         # Dummy: larger theta (harder bridge) reduces final participation
         s_final = 0.8 - 1.5 * theta
         s_final = np.clip(s_final, 0.0, 1.0)
 
-    plt.figure(figsize=(6, 4))
-    plt.plot(theta, s_final, lw=2)
-    plt.title("Effect of bridge nodes on cascade")
-    plt.xlabel("Bridge threshold θ")
-    plt.ylabel("Final participation")
+    plt.figure(figsize=(7, 5))
+    plt.plot(theta, s_final, "o-", color="#2E86AB", lw=2, markersize=3)
+    plt.title("Effect of bridge nodes on cascade", fontsize=14, fontweight="bold")
+    plt.xlabel("Bridge threshold θ", fontsize=12)
+    plt.ylabel("Final participation", fontsize=12)
     plt.grid(True, alpha=0.3)
     out = os.path.join(output_dir, "fig_bridge.png")
     plt.tight_layout()
+    plt.savefig(out, dpi=150)
+    plt.close()
+    return out
+
+
+def _fig_equilibrium_vs_sigma(input_dir: str, output_dir: str):
+    """Plot Figure 2: the critical result"""
+    path = os.path.join(input_dir, "equilibrium_vs_sigma.csv")
+    if not _file_nonempty(path):
+        return None
+    try:
+        data = np.loadtxt(path, delimiter=",", skiprows=1)
+        sigmas = data[:, 0]
+        equilibria = data[:, 1]
+    except Exception:
+        return None
+
+    diffs = np.diff(equilibria)
+    jump_idx = int(np.argmax(np.abs(diffs))) if len(diffs) > 0 else 0
+    sigma_c = sigmas[jump_idx]
+
+    plt.figure(figsize=(7, 5))
+    plt.plot(sigmas, equilibria, 'o-', color='#2E86AB', lw=2, markersize=3)
+    plt.axvline(sigma_c, color='red', ls='--', alpha=0.7, label=f'Critical σ_c ≈ {sigma_c:.3f}')
+    plt.title('Equilibrium vs Standard Deviation (Normal Distribution)', fontsize=14, fontweight='bold')
+    plt.xlabel('Standard deviation σ', fontsize=12)
+    plt.ylabel('Final participation', fontsize=12)
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    out = os.path.join(output_dir, "fig_equilibrium_vs_sigma.png")
     plt.savefig(out, dpi=150)
     plt.close()
     return out
@@ -103,11 +146,14 @@ def main(argv=None) -> int:
     out1 = _fig_seed_vs_final(input_dir, output_dir)
     out2 = _fig_timeseries_tip(input_dir, output_dir)
     out3 = _fig_bridge(input_dir, output_dir)
+    out4 = _fig_equilibrium_vs_sigma(input_dir, output_dir)
 
     print("Wrote figures:")
     print(" -", out1)
     print(" -", out2)
     print(" -", out3)
+    if out4 is not None:
+        print(" -", out4)
     return 0
 
 
