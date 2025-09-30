@@ -20,9 +20,11 @@ def run_cascade(thresholds, s0, t_max=200, conv_eps=1e-6):
     traj = [r]
     converged = False
 
+    eps = 1e-12
     for _ in range(t_max):
-        # Empirical CDF using direct count (robust to float boundary issues)
-        k = int(np.count_nonzero(th <= r))
+        # Empirical CDF using direct count with small epsilon to include
+        # boundary values robustly under floating-point representation.
+        k = int(np.count_nonzero(th <= r + eps))
         r_next = k / float(len(th))
         traj.append(r_next)
         if abs(r_next - r) < conv_eps:

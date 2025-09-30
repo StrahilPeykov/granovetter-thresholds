@@ -106,14 +106,14 @@ def main(argv=None) -> int:
         "dist": args.dist,
         "alpha": args.alpha,
         "beta": args.beta,
+        "mu": getattr(args, "mu", None),
+        "sigma": getattr(args, "sigma", None),
         "N": args.N,
         "t_max": args.t_max,
         "conv_eps": args.conv_eps,
         "seed": args.seed,
-        "s0_grid": [float(args.s0_grid[0]), float(args.s0_grid[1])],
-        "s0_steps": args.s0_steps,
-        "bridge_theta": args.bridge_theta,
-        "no_network": bool(args.no_network),
+        "s0_grid": [float(cfg.S0_GRID_START), float(cfg.S0_GRID_END)],
+        "s0_steps": int(cfg.S0_STEPS),
     }
 
     meta = {
