@@ -52,8 +52,9 @@ def figure2_equilibrium_vs_sigma(
             final_r, traj, _ = run_cascade(th, s0=s0)
             trial_results.append(final_r)
         
-        # Average over trials to reduce noise
-        equilibria[i] = np.mean(trial_results)
+        # Use median across trials for robustness: reduces rare-run cascades
+        # that can inflate the mean near the critical region.
+        equilibria[i] = np.median(trial_results)
 
     return sigmas, equilibria
 
