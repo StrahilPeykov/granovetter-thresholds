@@ -78,6 +78,15 @@ def main(argv=None) -> int:
         comments="",
     )
 
+    # Save thresholds used for Figure 1 graphical method (optional plotting)
+    np.savetxt(
+        os.path.join("results", "thresholds.csv"),
+        thresholds,
+        delimiter=",",
+        header="threshold",
+        comments="",
+    )
+
     # Experiment 2: Figure 2 replication — equilibrium vs sigma (normal, clipped)
     sigmas, eqs = figure2_equilibrium_vs_sigma(N=args.N, seed=args.seed)
     np.savetxt(

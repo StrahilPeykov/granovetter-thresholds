@@ -69,6 +69,10 @@ def uniform_comparison(N: int = 100, seed: int = 42):
     if N >= 4:
         thresholds_perturbed[3:] = (np.arange(3, N, dtype=float) / float(N))
 
+    # Paper example (p. 1425): remove the person with threshold 1/N and add
+    # a second person with threshold 2/N. This tiny change shifts the fixed
+    # point from everyone acting (r=1.0) to only one person acting (r=1/N).
+
     r_true, traj_true, _ = run_cascade(thresholds_true, s0=s0)
     r_pert, traj_pert, _ = run_cascade(thresholds_perturbed, s0=s0)
 

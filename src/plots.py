@@ -120,6 +120,24 @@ def _fig1_graphical_method(thresholds: np.ndarray, s0: float = 0.01):
     return plt.gcf()
 
 
+def _fig_graphical_method_from_file(input_dir: str, output_dir: str):
+    """If `results/thresholds.csv` exists, render Figure 1 cobweb plot."""
+    path = os.path.join(input_dir, "thresholds.csv")
+    if not _file_nonempty(path):
+        return None
+    try:
+        data = np.loadtxt(path, delimiter=",", skiprows=1)
+        thresholds = np.atleast_1d(data).astype(float)
+    except Exception:
+        return None
+
+    fig = _fig1_graphical_method(thresholds, s0=0.01)
+    out = os.path.join(output_dir, "fig_graphical_method.png")
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    return out
+
+
 def _fig_equilibrium_vs_sigma(input_dir: str, output_dir: str):
     """Plot Figure 2: the critical result"""
     path = os.path.join(input_dir, "equilibrium_vs_sigma.csv")
@@ -160,6 +178,7 @@ def main(argv=None) -> int:
     out1 = _fig_seed_vs_final(input_dir, output_dir)
     out2 = _fig_equilibrium_vs_sigma(input_dir, output_dir)
     out3 = _fig_uniform_comparison(input_dir, output_dir)
+    out4 = _fig_graphical_method_from_file(input_dir, output_dir)
 
     print("Wrote figures:")
     print(" -", out1)
@@ -167,6 +186,8 @@ def main(argv=None) -> int:
         print(" -", out2)
     if out3 is not None:
         print(" -", out3)
+    if out4 is not None:
+        print(" -", out4)
     return 0
 
 

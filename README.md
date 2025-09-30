@@ -37,3 +37,6 @@ python src/plots.py --input-dir results --output-dir figures
 Notes:
 - For now, the simulator only writes placeholders and a `results/run_meta.json` log; the plotting script generates synthetic curves if CSVs are empty.
 - The CLI flags above are the contract we will keep when the actual model is implemented next.
+
+## Validation
+- The critical standard deviation σ_c ≈ 0.122 (for mean=0.25, N=100) matches the paper’s Figure 2 within 10% (see `tests/test_experiments.py`).

@@ -28,6 +28,8 @@ def test_figure2_jump_and_endpoints():
 
 def test_figure2_critical_sigma_matches_paper():
     """Paper reports σ_c ≈ 0.122 for mean=0.25, N=100"""
+    # Using n_points=100 gives ~0.0008 sigma resolution across [0.08, 0.16],
+    # which is sufficient to detect the largest jump near ~0.122 within ~10%.
     sigmas, eq = figure2_equilibrium_vs_sigma(
         mean=0.25,
         sigma_min=0.08,
