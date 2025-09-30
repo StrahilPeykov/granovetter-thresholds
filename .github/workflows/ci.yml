@@ -21,11 +21,6 @@ jobs:
           auto-activate-base: false
           use-mamba: true
 
-      - name: Install test dependencies
-        shell: bash -l {0}
-        run: |
-          mamba install -y pytest
-
       - name: Verify core imports
         shell: bash -l {0}
         run: |
@@ -35,4 +30,3 @@ jobs:
         shell: bash -l {0}
         run: |
           pytest -q
-
