@@ -45,9 +45,9 @@ def figure2_equilibrium_vs_sigma(
             trial_seed = seed + i * n_trials + trial
             trial_rng = np.random.default_rng(trial_seed)
             
-            # Sample from a TRUNCATED normal on [0,1] (resample out-of-range),
-            # avoiding artificial mass at the boundaries introduced by clipping.
-            th = _truncated_normal(mean=float(mean), sigma=float(sigma), size=int(N), rng=trial_rng)
+            # Sample from normal and CLIP to [0,1], matching paper + app behavior.
+            th = trial_rng.normal(loc=mean, scale=float(sigma), size=N)
+            th = np.clip(th, 0.0, 1.0)
             th.sort()
             final_r, traj, _ = run_cascade(th, s0=s0)
             trial_results.append(final_r)
@@ -58,31 +58,6 @@ def figure2_equilibrium_vs_sigma(
     return sigmas, equilibria
 
 
-def _truncated_normal(mean: float, sigma: float, size: int, rng: np.random.Generator) -> np.ndarray:
-    """
-    Draw samples from N(mean, sigma^2) truncated to [0,1] by rejection sampling.
-    Ensures no probability mass piles up at 0 or 1 (unlike clipping).
-    """
-    samples = rng.normal(loc=mean, scale=sigma, size=size)
-    # Re-sample any out-of-range values until all are within [0,1]
-    # Vectorized loop; expected to converge quickly for the sigmas we use.
-    mask = (samples < 0.0) | (samples > 1.0)
-    # Put a hard iteration cap to avoid infinite loops in extreme cases
-    # (very rare given finite support of rejection region).
-    max_iters = 1000
-    iters = 0
-    while np.any(mask):
-        n_bad = int(np.count_nonzero(mask))
-        resamples = rng.normal(loc=mean, scale=sigma, size=n_bad)
-        samples[mask] = resamples
-        mask = (samples < 0.0) | (samples > 1.0)
-        iters += 1
-        if iters > max_iters:
-            # As a last resort, clamp any remaining outliers very slightly away from boundaries
-            # to preserve ordering without creating a mass point.
-            samples = np.clip(samples, 1e-12, 1 - 1e-12)
-            break
-    return samples.astype(float, copy=False)
 
 
 def uniform_comparison(N: int = 100, seed: int = 42):
@@ -187,7 +162,8 @@ def validate_figure2_asymptotic_behavior(
     large_sigma = 10.0  # Much larger than the support [0,1]
     
     rng = np.random.default_rng(seed)
-    th = _truncated_normal(mean=float(mean), sigma=float(large_sigma), size=int(N), rng=rng)
+    th = rng.normal(loc=mean, scale=large_sigma, size=N)
+    th = np.clip(th, 0.0, 1.0)
     th.sort()
     
     s0 = 1.0 / float(N)
