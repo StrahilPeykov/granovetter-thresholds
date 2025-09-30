@@ -10,6 +10,8 @@ __pycache__/
 # Results / caches
 results/*.npy
 results/*.csv
+results/run_meta.json
+figures/*.png
 # Mac
 .DS_Store
 # VS Code
