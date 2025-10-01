@@ -1,0 +1,27 @@
+name: Protect main branch
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  block-direct-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail on direct pushes to protected branches
+        run: |
+          # Allow repo owner to push directly
+          echo "Actor: ${GITHUB_ACTOR}"
+          if [ "${GITHUB_ACTOR}" = "StrahilPeykov" ]; then
+            echo "Bypass: StrahilPeykov can push directly to main/master.";
+            exit 0;
+          fi
+          # Allow merge commits created by PR merges (default uses web-flow)
+          COMMIT_MSG=$(git log -1 --pretty=%s || echo "")
+          echo "Commit message: $COMMIT_MSG"
+          if echo "$COMMIT_MSG" | grep -qi "merge pull request"; then
+            echo "Detected merge commit from PR. Allowed."
+            exit 0
+          fi
+          echo "Direct push to main/master detected. Failing the check."
+          exit 1
