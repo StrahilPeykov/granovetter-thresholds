@@ -9,9 +9,21 @@ if _REPO_ROOT not in sys.path:
 
 import streamlit as st
 import numpy as np
-import matplotlib
+try:
+    import matplotlib  # type: ignore
+except ModuleNotFoundError:
+    # Attempt on-the-fly install on hosted runners where env resolution missed it
+    try:
+        import subprocess, sys, importlib
+        st.info("Installing Matplotlib… (first run on cloud)")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "matplotlib>=3.8,<3.9", "--quiet"])  # noqa: S603,S607
+        matplotlib = importlib.import_module("matplotlib")
+    except Exception as e:  # pragma: no cover
+        st.error("Matplotlib is required but could not be installed. See app logs for details.")
+        raise
+
 matplotlib.use("Agg")  # headless backend for Streamlit Cloud
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # type: ignore
 
 from src.threshold_cascade import run_cascade  # noqa: E402
 from src.distributions import *  # noqa: F401,F403,E402

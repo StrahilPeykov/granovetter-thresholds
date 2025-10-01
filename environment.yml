@@ -4,7 +4,9 @@ dependencies:
   - python=3.11
   - numpy
   - scipy
-  - matplotlib
   - networkx
   - streamlit
   - pytest
+  - pip
+  - pip:
+      - matplotlib>=3.8,<3.9
