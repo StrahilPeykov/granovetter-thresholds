@@ -50,9 +50,11 @@ All figures are generated from actual simulations (not placeholder data):
 
 ## Setup
 
-Use Conda/Mamba to create the environment:
+On Streamlit Cloud, dependencies are installed from `requirements.txt`.
+
+Local development (optional):
 ```bash
-mamba env create -f environment.yml   # or: conda env create -f environment.yml
+mamba env create -f environment.conda.yml   # or: conda env create -f environment.conda.yml
 conda activate granovetter
 ```
 
@@ -134,7 +136,7 @@ Key tests:
 │   └── test_cli.py
 ├── results/                     # CSV outputs, run metadata
 ├── figures/                     # PNG figures
-├── environment.yml              # Conda environment
+├── environment.conda.yml        # Optional: Conda environment (local use)
 ├── README.md                    # This file
 └── RUNME.md                     # Quick-start commands
 ```

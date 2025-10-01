@@ -1,10 +1,10 @@
 # Quick Start Guide
 
-## Setup Environment
+## Setup Environment (optional)
 
 ```bash
-# Create and activate conda environment
-mamba env create -f environment.yml   # or: conda env create -f environment.yml
+# Create and activate local conda environment
+mamba env create -f environment.conda.yml   # or: conda env create -f environment.conda.yml
 conda activate granovetter
 ```
 
