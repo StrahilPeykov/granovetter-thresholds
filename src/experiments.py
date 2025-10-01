@@ -11,7 +11,7 @@ except Exception:
 def figure2_equilibrium_vs_sigma(
     mean: float = 0.25,
     sigma_min: float = 0.01,
-    sigma_max: float = 0.50,
+    sigma_max: float = 1.00,
     n_points: int = 100,
     N: int = 100,
     seed: int = 42,
