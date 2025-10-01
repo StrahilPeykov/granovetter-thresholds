@@ -9,6 +9,8 @@ if _REPO_ROOT not in sys.path:
 
 import streamlit as st
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")  # headless backend for Streamlit Cloud
 import matplotlib.pyplot as plt
 
 from src.threshold_cascade import run_cascade  # noqa: E402
