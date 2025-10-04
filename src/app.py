@@ -320,6 +320,6 @@ with tab_about:
             *American Journal of Sociology*, 83(6), 1420-1443.
 
             **Live demo:** https://granovetter.streamlit.app/  
-            **Code:** [GitHub repo link]
+            **Code:** https://github.com/StrahilPeykov/granovetter-thresholds
             """
         )
