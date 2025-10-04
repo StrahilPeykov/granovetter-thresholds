@@ -64,13 +64,13 @@ alpha = 2.0
 beta = 5.0
 
 if dist_type == "Normal (clipped)":
-    mean = st.sidebar.slider("Mean threshold (mu)", 0.0, 1.0, 0.25, 0.01)
-    sigma = st.sidebar.slider("Standard deviation (sigma)", 0.01, 0.30, 0.10, 0.01)
+    mean = st.sidebar.slider("Mean threshold μ", 0.0, 1.0, 0.25, 0.01)
+    sigma = st.sidebar.slider("Std deviation σ", 0.01, 0.30, 0.10, 0.01)
 elif dist_type == "Beta":
     alpha = st.sidebar.slider("Alpha", 0.5, 5.0, 2.0, 0.1)
     beta = st.sidebar.slider("Beta", 0.5, 5.0, 5.0, 0.1)
 
-s0 = st.sidebar.slider("Initial seed s0", 0.0, 0.5, 0.01, 0.01)
+s0 = st.sidebar.slider("Initial seed s₀", 0.0, 0.5, 0.01, 0.01)
 seed = st.sidebar.number_input("Random seed", 0, 99999, 42, 1)
 seed_int = int(seed)
 
@@ -96,7 +96,7 @@ with tab1:
 
         fig, ax = plt.subplots(figsize=(6, 4))
         ax.hist(thresholds, bins=30, color="steelblue", alpha=0.7, edgecolor="black")
-        ax.axvline(s0, color="red", ls="--", lw=2, label=f"Initial seed s0={s0:.2f}")
+        ax.axvline(s0, color="red", ls="--", lw=2, label=f"Initial seed s₀={s0:.2f}")
         ax.set_xlabel("Threshold")
         ax.set_ylabel("Count")
         ax.set_title("Distribution of Thresholds")
@@ -159,10 +159,10 @@ with tab3:
     with col1:
         fig2_N = st.number_input("Population N", 50, 500, 100, 10, key="fig2_N")
         fig2_mean = st.number_input("Mean", 0.0, 1.0, 0.25, 0.01, key="fig2_mean")
-        sigma_min = st.number_input("Min sigma", 0.01, 0.20, 0.01, 0.01)
-        sigma_max = st.number_input("Max sigma", 0.10, 0.50, 0.30, 0.01)
+        sigma_min = st.number_input("Min σ", 0.01, 0.20, 0.01, 0.01)
+        sigma_max = st.number_input("Max σ", 0.10, 0.50, 0.30, 0.01)
         n_points = st.slider("# points to test", 20, 200, 100, 10)
-        n_trials = st.number_input("Trials per sigma (averaging)", 1, 100, 15, 1, key="fig2_trials")
+        n_trials = st.number_input("Trials per σ (averaging)", 1, 100, 15, 1, key="fig2_trials")
 
         run_fig2 = st.button("Run Figure 2 Experiment", type="primary")
 
@@ -185,8 +185,8 @@ with tab3:
 
             fig, ax = plt.subplots(figsize=(8, 5))
             ax.plot(sigmas, equilibria, "o-", markersize=4, lw=2)
-            ax.axvline(sigma_c, color="red", ls="--", lw=2, label=f"Critical sigma_c ~ {sigma_c:.3f}")
-            ax.set_xlabel("Standard deviation (sigma)", fontsize=12)
+            ax.axvline(sigma_c, color="red", ls="--", lw=2, label=f"Critical σc ~ {sigma_c:.3f}")
+            ax.set_xlabel("Standard deviation σ", fontsize=12)
             ax.set_ylabel("Equilibrium participation", fontsize=12)
             ax.set_title("Figure 2: Discontinuous Transition", fontsize=14, fontweight="bold")
             ax.legend(fontsize=11)
@@ -194,8 +194,8 @@ with tab3:
             st.pyplot(fig)
             plt.close(fig)
 
-            st.success(f"Critical point detected at sigma_c ~ {sigma_c:.3f}")
-            st.info("Paper reports sigma_c ~ 0.122 for mean=0.25, N=100")
+            st.success(f"Critical point detected at σc ≈ {sigma_c:.3f}")
+            st.info("Paper reports σc ≈ 0.122 for mean=0.25, N=100")
         else:
             st.info("Click 'Run Figure 2 Experiment' to start")
 
