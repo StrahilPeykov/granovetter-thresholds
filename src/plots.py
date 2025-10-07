@@ -163,8 +163,8 @@ def _fig1_graphical_method(thresholds: np.ndarray, s0: float = 0.01):
     x = np.linspace(0, 1, 1001)
     F = np.searchsorted(th, x, side='right') / float(N)
 
-    # Use a smaller default size so it fits comfortably in-app
-    fig, ax = plt.subplots(figsize=(5, 5))
+    # Use a smaller default size to avoid full-width rendering
+    fig, ax = plt.subplots(figsize=(3.5, 3.5))
     ax.plot(x, F, label='CDF F(x)', color='#2E86AB', lw=2.5)
     ax.plot([0, 1], [0, 1], color='gray', ls='--', lw=1.5, label='45° line: F(x)=x')
 

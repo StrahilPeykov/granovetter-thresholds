@@ -141,7 +141,8 @@ with tab2:
     )
 
     fig = _fig1_graphical_method(thresholds, s0=s0)
-    st.pyplot(fig)
+    # Avoid expanding to full container width for better readability
+    st.pyplot(fig, use_container_width=False)
     plt.close(fig)
 
 with tab3:
