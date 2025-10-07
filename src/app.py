@@ -70,7 +70,7 @@ elif dist_type == "Beta":
     alpha = st.sidebar.slider("Alpha", 0.5, 5.0, 2.0, 0.1)
     beta = st.sidebar.slider("Beta", 0.5, 5.0, 5.0, 0.1)
 
-s0 = st.sidebar.slider("Initial seed s₀", 0.0, 0.5, 0.01, 0.01)
+s0 = st.sidebar.slider("Initial seed s₀", 0.0, 1.0, 0.01, 0.01)
 seed = st.sidebar.number_input("Random seed", 0, 99999, 42, 1)
 seed_int = int(seed)
 
@@ -95,7 +95,9 @@ with tab1:
         st.subheader("Threshold Distribution")
 
         fig, ax = plt.subplots(figsize=(6, 4))
-        ax.hist(thresholds, bins=30, color="steelblue", alpha=0.7, edgecolor="black")
+        # Use 0.01-wide bins across [0, 1] so each bar represents 0.01
+        bins = np.arange(0.0, 1.0 + 0.01, 0.01)
+        ax.hist(thresholds, bins=bins, color="steelblue", alpha=0.7, edgecolor="black")
         ax.axvline(s0, color="red", ls="--", lw=2, label=f"Initial seed s₀={s0:.2f}")
         ax.set_xlabel("Threshold")
         ax.set_ylabel("Count")
@@ -158,10 +160,10 @@ with tab3:
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        fig2_N = st.number_input("Population N", 50, 500, 100, 10, key="fig2_N")
+        fig2_N = st.number_input("Population N", 50, 1000, 100, 10, key="fig2_N")
         fig2_mean = st.number_input("Mean", 0.0, 1.0, 0.25, 0.01, key="fig2_mean")
-        sigma_min = st.number_input("Min σ", 0.01, 0.20, 0.01, 0.01)
-        sigma_max = st.number_input("Max σ", 0.10, 0.50, 0.30, 0.01)
+        sigma_min = st.number_input("Min σ", 0.01, 1.00, 0.01, 0.01)
+        sigma_max = st.number_input("Max σ", 0.01, 1.00, 0.30, 0.01)
         n_points = st.slider("# points to test", 20, 200, 100, 10)
         n_trials = st.number_input("Trials per σ (averaging)", 1, 100, 15, 1, key="fig2_trials")
 
@@ -169,34 +171,36 @@ with tab3:
 
     with col2:
         if run_fig2:
-            with st.spinner("Running sigma sweep..."):
-                sigmas, equilibria = figure2_equilibrium_vs_sigma(
-                    mean=float(fig2_mean),
-                    sigma_min=float(sigma_min),
-                    sigma_max=float(sigma_max),
-                    n_points=int(n_points),
-                    N=int(fig2_N),
-                    seed=seed_int,
-                    n_trials=int(n_trials),
-                )
+            if sigma_max <= sigma_min:
+                st.error("Max σ must be greater than Min σ.")
+            else:
+                with st.spinner("Running sigma sweep..."):
+                    sigmas, equilibria = figure2_equilibrium_vs_sigma(
+                        mean=float(fig2_mean),
+                        sigma_min=float(sigma_min),
+                        sigma_max=float(sigma_max),
+                        n_points=int(n_points),
+                        N=int(fig2_N),
+                        seed=seed_int,
+                        n_trials=int(n_trials),
+                    )
+                    diffs = np.diff(equilibria)
+                    jump_idx = int(np.argmax(np.abs(diffs))) if len(diffs) > 0 else 0
+                    sigma_c = sigmas[jump_idx]
 
-            diffs = np.diff(equilibria)
-            jump_idx = int(np.argmax(np.abs(diffs))) if len(diffs) > 0 else 0
-            sigma_c = sigmas[jump_idx]
+                    fig, ax = plt.subplots(figsize=(8, 5))
+                    ax.plot(sigmas, equilibria, "o-", markersize=4, lw=2)
+                    ax.axvline(sigma_c, color="red", ls="--", lw=2, label=f"Critical σc ~ {sigma_c:.3f}")
+                    ax.set_xlabel("Standard deviation σ", fontsize=12)
+                    ax.set_ylabel("Equilibrium participation", fontsize=12)
+                    ax.set_title("Figure 2: Discontinuous Transition", fontsize=14, fontweight="bold")
+                    ax.legend(fontsize=11)
+                    ax.grid(True, alpha=0.3)
+                    st.pyplot(fig)
+                    plt.close(fig)
 
-            fig, ax = plt.subplots(figsize=(8, 5))
-            ax.plot(sigmas, equilibria, "o-", markersize=4, lw=2)
-            ax.axvline(sigma_c, color="red", ls="--", lw=2, label=f"Critical σc ~ {sigma_c:.3f}")
-            ax.set_xlabel("Standard deviation σ", fontsize=12)
-            ax.set_ylabel("Equilibrium participation", fontsize=12)
-            ax.set_title("Figure 2: Discontinuous Transition", fontsize=14, fontweight="bold")
-            ax.legend(fontsize=11)
-            ax.grid(True, alpha=0.3)
-            st.pyplot(fig)
-            plt.close(fig)
-
-            st.success(f"Critical point detected at σc ≈ {sigma_c:.3f}")
-            st.info("Paper reports σc ≈ 0.122 for mean=0.25, N=100")
+                st.success(f"Critical point detected at σc ≈ {sigma_c:.3f}")
+                st.info("Paper reports σc ≈ 0.122 for mean=0.25, N=100")
         else:
             st.info("Click 'Run Figure 2 Experiment' to start")
 
@@ -212,8 +216,8 @@ with tab4:
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        s0_min = st.slider("Min s0", 0.0, 0.3, 0.0, 0.01, key="seed_s0_min")
-        s0_max = st.slider("Max s0", 0.1, 0.5, 0.3, 0.01, key="seed_s0_max")
+        s0_min = st.slider("Min s0", 0.0, 1.0, 0.0, 0.01, key="seed_s0_min")
+        s0_max = st.slider("Max s0", 0.0, 1.0, 0.3, 0.01, key="seed_s0_max")
         n_points_seed = st.slider("# points", 20, 100, 50, key="seed_npts")
 
         run_seed = st.button("Run Seed Sensitivity", type="primary")
