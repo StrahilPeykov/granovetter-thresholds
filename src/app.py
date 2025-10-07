@@ -99,6 +99,15 @@ with tab1:
         bins = np.arange(0.0, 1.0 + 0.01, 0.01)
         ax.hist(thresholds, bins=bins, color="steelblue", alpha=0.7, edgecolor="black")
         ax.axvline(s0, color="red", ls="--", lw=2, label=f"Initial seed s₀={s0:.2f}")
+        # Trim x-limits to data range with a small cushion, instead of always [0,1]
+        t_min = float(np.min(thresholds)) if thresholds.size else 0.0
+        t_max = float(np.max(thresholds)) if thresholds.size else 1.0
+        cushion = 0.02
+        left = max(0.0, t_min - cushion)
+        right = min(1.0, t_max + cushion)
+        if right <= left:
+            left, right = 0.0, 1.0
+        ax.set_xlim(left, right)
         ax.set_xlabel("Threshold")
         ax.set_ylabel("Count")
         ax.set_title("Distribution of Thresholds")
