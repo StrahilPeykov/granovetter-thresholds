@@ -163,8 +163,8 @@ def _fig1_graphical_method(thresholds: np.ndarray, s0: float = 0.01):
     x = np.linspace(0, 1, 1001)
     F = np.searchsorted(th, x, side='right') / float(N)
 
-    # Use a smaller default size to avoid full-width rendering
-    fig, ax = plt.subplots(figsize=(3.5, 3.5))
+    # Keep compact size but allow space for an external legend
+    fig, ax = plt.subplots(figsize=(4.2, 3.5))
     ax.plot(x, F, label='CDF F(x)', color='#2E86AB', lw=2.5)
     ax.plot([0, 1], [0, 1], color='gray', ls='--', lw=1.5, label='45° line: F(x)=x')
 
@@ -195,10 +195,12 @@ def _fig1_graphical_method(thresholds: np.ndarray, s0: float = 0.01):
     ax.set_title('Figure 1: Graphical method for finding equilibrium\n' + 
                 'r(t) = proportion having participated by time t',
                 fontsize=13, fontweight='bold')
-    ax.legend(fontsize=10)
+    # Place legend to the right of the axes to avoid covering the plot
+    ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), fontsize=9, frameon=False)
     ax.grid(True, alpha=0.3)
     ax.set_aspect('equal')
-    plt.tight_layout()
+    # Reserve right margin for the external legend area
+    fig.subplots_adjust(right=0.78)
     return fig
 
 
