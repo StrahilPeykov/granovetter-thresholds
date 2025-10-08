@@ -99,14 +99,13 @@ with tab1:
         bins = np.arange(0.0, 1.0 + 0.01, 0.01)
         ax.hist(thresholds, bins=bins, color="steelblue", alpha=0.7, edgecolor="black")
         ax.axvline(s0, color="red", ls="--", lw=2, label=f"Initial seed s₀={s0:.2f}")
-        # Trim x-limits to data range with a small cushion, instead of always [0,1]
-        t_min = float(np.min(thresholds)) if thresholds.size else 0.0
+        # Trim right x-limit to data range with small cushion; always start at 0.0
         t_max = float(np.max(thresholds)) if thresholds.size else 1.0
         cushion = 0.02
-        left = max(0.0, t_min - cushion)
-        right = min(1.0, t_max + cushion)
+        left = 0.0
+        right = min(1.0, max(0.05, t_max + cushion))
         if right <= left:
-            left, right = 0.0, 1.0
+            right = 1.0
         ax.set_xlim(left, right)
         ax.set_xlabel("Threshold")
         ax.set_ylabel("Count")
@@ -329,11 +328,11 @@ with tab_about:
         st.subheader("Paper Details")
         st.markdown(
             """
-            **Citation:**  
-            Granovetter, M. (1978). Threshold Models of Collective Behavior.  
+            **Citation:**
+            Granovetter, M. (1978). Threshold Models of Collective Behavior.
             *American Journal of Sociology*, 83(6), 1420-1443.
 
-            **Live demo:** https://granovetter.streamlit.app/  
+            **Live demo:** https://granovetter.streamlit.app/
             **Code:** https://github.com/StrahilPeykov/granovetter-thresholds
             """
         )

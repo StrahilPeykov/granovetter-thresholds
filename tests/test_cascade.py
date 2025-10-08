@@ -21,4 +21,3 @@ def test_perturbed_distribution_stops_at_one_over_N():
     # After first step it should reach 0.01 and stay there
     assert traj[1] == 0.01
     assert traj[-1] == 0.01
-

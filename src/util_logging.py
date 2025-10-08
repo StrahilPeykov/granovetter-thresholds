@@ -28,4 +28,3 @@ def utc_timestamp_iso() -> str:
 def write_json(path: str, data: dict) -> None:
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, sort_keys=True)
-

@@ -14,7 +14,6 @@ import numpy as np
 
 from util_logging import ensure_dir, write_json, get_git_commit_short, utc_timestamp_iso
 import config as cfg
-from threshold_cascade import run_cascade
 from experiments import (
     figure2_equilibrium_vs_sigma,
     uniform_comparison,
@@ -55,7 +54,7 @@ def main(argv=None) -> int:
     uniform_cmp = os.path.join("results", "uniform_comparison.csv")
     run_meta_path = os.path.join("results", "run_meta.json")
 
-    print(f"Running threshold cascade simulations...")
+    print("Running threshold cascade simulations...")
     print(f"  Distribution: {args.dist}")
     print(f"  Population: N={args.N}")
     print(f"  Seed: {args.seed}")
@@ -99,7 +98,7 @@ def main(argv=None) -> int:
     # Experiment 2: Figure 2 replication — equilibrium vs sigma (normal, clipped)
     print(f"Experiment 2: Figure 2 replication (σ sweep, n_trials={args.fig2_trials})...")
     sigmas, eqs = figure2_equilibrium_vs_sigma(
-        N=args.N, 
+        N=args.N,
         seed=args.seed,
         n_trials=args.fig2_trials,
     )
@@ -110,7 +109,7 @@ def main(argv=None) -> int:
         header="sigma,equilibrium",
         comments="",
     )
-    
+
     # Report critical point
     diffs = np.diff(eqs)
     jump_idx = int(np.argmax(np.abs(diffs))) if len(diffs) > 0 else 0

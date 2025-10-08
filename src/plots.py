@@ -70,13 +70,13 @@ def _fig_uniform_comparison(input_dir: str, output_dir: str):
     plt.title("Uniform vs perturbed: equilibrium outcomes (pages 1424–1425)", fontsize=14, fontweight="bold")
     plt.ylabel("Final participation (proportion)", fontsize=12)
     plt.grid(True, axis="y", alpha=0.3)
-    
+
     # Add annotation explaining the dramatic difference
     if abs(true_eq - pert_eq) > 0.5:
-        plt.text(0.5, 0.5, "Tiny change in distribution\n→ Huge change in outcome", 
-                ha='center', fontsize=10, style='italic',
-                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
-    
+        plt.text(0.5, 0.5, "Tiny change in distribution\n→ Huge change in outcome",
+                 ha='center', fontsize=10, style='italic',
+                 bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
+
     plt.tight_layout()
     out = os.path.join(output_dir, "fig_uniform_comparison.png")
     plt.savefig(out, dpi=150)
@@ -87,7 +87,7 @@ def _fig_uniform_comparison(input_dir: str, output_dir: str):
 def _fig_equilibrium_vs_sigma(input_dir: str, output_dir: str):
     """
     Plot Figure 2: the critical result from page 1428
-    
+
     Key features to highlight:
     - Critical σ_c ≈ 0.122 where discontinuous jump occurs
     - Near-zero equilibrium for σ < σ_c
@@ -110,38 +110,38 @@ def _fig_equilibrium_vs_sigma(input_dir: str, output_dir: str):
     sigma_c = sigmas[jump_idx]
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    
+
     # Main curve
-    ax.plot(sigmas, equilibria, 'o-', color='#2E86AB', lw=2.5, markersize=4, 
+    ax.plot(sigmas, equilibria, 'o-', color='#2E86AB', lw=2.5, markersize=4,
             label='Equilibrium participation')
-    
+
     # Highlight the critical point
-    ax.axvline(sigma_c, color='red', ls='--', lw=2, alpha=0.7, 
+    ax.axvline(sigma_c, color='red', ls='--', lw=2, alpha=0.7,
                label=f'Critical σ_c ≈ {sigma_c:.3f}')
-    
+
     # Add reference line for paper's theoretical value
     ax.axvline(0.122, color='gray', ls=':', lw=1.5, alpha=0.5,
                label='Paper value: σ_c = 0.122')
-    
+
     # Annotate the jump region
     if jump_idx < len(equilibria) - 1:
         eq_before = equilibria[jump_idx]
         eq_after = equilibria[jump_idx + 1]
-        ax.annotate('Discontinuous\ntransition', 
-                   xy=(sigma_c, (eq_before + eq_after) / 2),
-                   xytext=(sigma_c + 0.05, 0.5),
-                   fontsize=10,
-                   bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5),
-                   arrowprops=dict(arrowstyle='->', color='red', lw=1.5))
-    
+        ax.annotate('Discontinuous\ntransition',
+                    xy=(sigma_c, (eq_before + eq_after) / 2),
+                    xytext=(sigma_c + 0.05, 0.5),
+                    fontsize=10,
+                    bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5),
+                    arrowprops=dict(arrowstyle='->', color='red', lw=1.5))
+
     ax.set_xlabel('Standard deviation σ', fontsize=13)
     ax.set_ylabel('Equilibrium participation (proportion)', fontsize=13)
-    ax.set_title('Figure 2: Critical transition in threshold model\n(Normal distribution, mean=0.25, N=100)', 
+    ax.set_title('Figure 2: Critical transition in threshold model\n(Normal distribution, mean=0.25, N=100)',
                  fontsize=14, fontweight='bold')
     ax.legend(fontsize=10, loc='upper right')
     ax.grid(True, alpha=0.3)
     ax.set_ylim(-0.05, 1.05)
-    
+
     plt.tight_layout()
     out = os.path.join(output_dir, "fig_equilibrium_vs_sigma.png")
     plt.savefig(out, dpi=150)
@@ -152,7 +152,7 @@ def _fig_equilibrium_vs_sigma(input_dir: str, output_dir: str):
 def _fig1_graphical_method(thresholds: np.ndarray, s0: float = 0.01):
     """
     Figure 1 (page 1426): Cobweb diagram showing the graphical method
-    
+
     Shows r(t) → F[r(t)] → r(t+1) using 45° line intersection.
     - Plots the empirical CDF F(r)
     - Plots the 45° line r
@@ -177,14 +177,14 @@ def _fig1_graphical_method(thresholds: np.ndarray, s0: float = 0.01):
         ax.plot([r, r], [r, Fr], color='#27AE60', lw=1.5, alpha=0.7)
         # horizontal: (r, F(r)) -> (F(r), F(r))
         ax.plot([r, Fr], [Fr, Fr], color='#27AE60', lw=1.5, alpha=0.7)
-        
+
         if i == 0:
             ax.plot([], [], color='#27AE60', lw=1.5, label='Iteration steps')
-        
+
         if abs(Fr - r) < 1e-6:
             # Mark equilibrium point
-            ax.plot(Fr, Fr, 'ro', markersize=10, 
-                   label=f'Equilibrium r_e = {Fr:.3f}', zorder=10)
+            ax.plot(Fr, Fr, 'ro', markersize=10,
+                    label=f'Equilibrium r_e = {Fr:.3f}', zorder=10)
             break
         r = Fr
 
@@ -192,9 +192,9 @@ def _fig1_graphical_method(thresholds: np.ndarray, s0: float = 0.01):
     ax.set_ylim(-0.02, 1.02)
     ax.set_xlabel('r (proportion participating)', fontsize=12)
     ax.set_ylabel('F(r) (cumulative distribution)', fontsize=12)
-    ax.set_title('Figure 1: Graphical method for finding equilibrium\n' + 
-                'r(t) = proportion having participated by time t',
-                fontsize=13, fontweight='bold')
+    ax.set_title('Figure 1: Graphical method for finding equilibrium\n' +
+                 'r(t) = proportion having participated by time t',
+                 fontsize=13, fontweight='bold')
     # Place legend to the right of the axes to avoid covering the plot
     ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), fontsize=9, frameon=False)
     ax.grid(True, alpha=0.3)

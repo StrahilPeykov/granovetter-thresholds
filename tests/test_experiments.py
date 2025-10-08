@@ -34,7 +34,7 @@ def test_figure2_jump_and_endpoints():
 def test_figure2_critical_sigma_matches_paper():
     """
     Paper reports σ_c ≈ 0.122 for mean=0.25, N=100
-    
+
     Note: We use n_trials=10 to reduce sampling noise. The paper's
     analytical treatment doesn't have sampling variability, so we
     need to average to get stable results.
@@ -59,7 +59,7 @@ def test_figure2_critical_sigma_matches_paper():
     tolerance = 0.15
     lower = expected * (1 - tolerance)
     upper = expected * (1 + tolerance)
-    
+
     assert lower <= sigma_c <= upper, \
         f"Expected σ_c ≈ {expected:.3f} (±{tolerance*100:.0f}%), got {sigma_c:.3f}"
 
@@ -82,15 +82,15 @@ def test_figure2_jump_magnitude():
     # Find the jump
     diffs = np.diff(eq)
     jump_idx = int(np.argmax(diffs))
-    
+
     # Equilibrium before jump should be low (< 0.1)
     eq_before = eq[jump_idx]
     assert eq_before < 0.1, f"Expected low equilibrium before jump, got {eq_before:.3f}"
-    
+
     # Equilibrium after jump should be high (> 0.8)
     eq_after = eq[jump_idx + 1]
     assert eq_after > 0.8, f"Expected high equilibrium after jump, got {eq_after:.3f}"
-    
+
     # Jump magnitude should be substantial
     jump_magnitude = eq_after - eq_before
     assert jump_magnitude > 0.7, f"Expected large jump (>0.7), got {jump_magnitude:.3f}"
@@ -99,12 +99,12 @@ def test_figure2_jump_magnitude():
 def test_figure2_asymptotic_behavior():
     """
     As σ → ∞, equilibrium should approach 0.5
-    
+
     Mathematical reasoning from paper (p. 1427): "The limiting value,
     as σ increases without bound, is 50, since eventually all the area
     to the right of the mean can be seen as beyond 100, all the area
     to its left below 0."
-    
+
     In our proportion notation (0-1), this becomes 0.5.
     """
     eq_large_sigma, expected = validate_figure2_asymptotic_behavior(
@@ -112,7 +112,7 @@ def test_figure2_asymptotic_behavior():
         N=1000,  # Larger N for better approximation
         seed=42,
     )
-    
+
     # Allow 10% tolerance (should approach 0.5 for very large σ)
     assert abs(eq_large_sigma - expected) < 0.05, \
         f"Expected equilibrium → {expected:.2f} as σ → ∞, got {eq_large_sigma:.3f}"
@@ -124,6 +124,6 @@ def test_figure2_reproducibility():
     """
     sigmas1, eq1 = figure2_equilibrium_vs_sigma(seed=12345, n_trials=3)
     sigmas2, eq2 = figure2_equilibrium_vs_sigma(seed=12345, n_trials=3)
-    
+
     np.testing.assert_array_equal(sigmas1, sigmas2)
     np.testing.assert_array_almost_equal(eq1, eq2, decimal=10)
